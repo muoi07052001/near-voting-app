@@ -35,6 +35,16 @@ near view btc-app-vote.duongnh.testnet get_all_users '{"from_index": 0, "limit":
 near view btc-app-vote.duongnh.testnet get_user_by_id '{"user_id": 0}'
 ```
 
+4. Update User information
+```
+near call btc-app-vote.duongnh.testnet update_user '{"user_id": 0, "name": "Hai", "role": "Admin", "email": "duong07052001@gmail.com", "near_account_id": "duongnh.testnet"}' --accountId duongnh.testnet
+```
+
+5. Delete a User
+```
+near call btc-app-vote.duongnh.testnet delete_user '{"user_id": 0}' --accountId duongnh.testnet
+```
+
 ---
 ### Criterias
 1. Create a Criteria:
@@ -54,32 +64,75 @@ near view btc-app-vote.duongnh.testnet get_all_criterias '{"from_index": 0, "lim
 near view btc-app-vote.duongnh.testnet get_criteria_by_id '{"criteria_id": 0}'
 ```
 
+4. Update Criteria information
+```
+near call btc-app-vote.duongnh.testnet update_criteria '{"criteria_id": 0, "description": "Updated description"}' --accountId duongnh.testnet
+```
+
+5. Delete a Criteria
+```
+near call btc-app-vote.duongnh.testnet delete_criteria '{"criteria_id": 0}' --accountId duongnh.testnet
+```
+
 ---
-### Votes
-1. Create a Vote:
+### Polls
+1. Create a Poll:
 
 ```
-near call btc-app-vote.duongnh.testnet create_vote '{"criteria_id": 0, "user_id": 0, "month": 6, "start_at": 0, "end_at": 0}' --deposit 0.1 --accountId duongnh.testnet
+near call btc-app-vote.duongnh.testnet create_poll '{"criteria_id": 0, "user_id": 0, "title": "Test poll", "description": "Test poll description",  "start_at": 0, "end_at": 0}' --deposit 0.1 --accountId duongnh.testnet
 ```
 
-2. View list of Vote (with pagination) of the Contract: (`from_index`: integer, `limit`: integer)
+2. View list of Poll (with pagination) of the Contract: (`from_index`: integer, `limit`: integer)
 
 ```
-near view btc-app-vote.duongnh.testnet get_all_votes '{"from_index": 0, "limit": 10}'
+near view btc-app-vote.duongnh.testnet get_all_polls '{"from_index": 0, "limit": 10}'
 ```
 
-3. View 1 Vote by vote_id
+3. View 1 Poll by poll_id
 ```
-near view btc-app-vote.duongnh.testnet get_vote_by_id '{"vote_id": 0}'
+near view btc-app-vote.duongnh.testnet get_poll_by_id '{"poll_id": 0}'
 ```
 
+4. Update Poll information
+```
+near call btc-app-vote.duongnh.testnet update_poll '{"poll_id": 0, "title": "Updated title", "description": "Updated description", "start_at": 0, "end_at": 0}' --accountId duongnh.testnet
+```
+
+5. Delete a Poll
+```
+near call btc-app-vote.duongnh.testnet delete_poll '{"poll_id": 0}' --accountId duongnh.testnet
+```
+
+---
+### Poll Options
+1. Create a Poll Option:
+
+```
+near call btc-app-vote.duongnh.testnet create_poll_option --deposit 0.1 --accountId duongnh.testnet
+```
+
+2. View list of Poll Option (with pagination) of the Contract: (`from_index`: integer, `limit`: integer)
+
+```
+near view btc-app-vote.duongnh.testnet get_all_poll_options '{"from_index": 0, "limit": 10}'
+```
+
+3. View 1 Poll Option by poll_option_id
+```
+near view btc-app-vote.duongnh.testnet get_poll_option_by_id '{"poll_option_id": 0}'
+```
+
+5. Delete a Poll Option
+```
+near call btc-app-vote.duongnh.testnet delete_poll_option '{"poll_option_id": 0}' --accountId duongnh.testnet
+```
 
 ---
 ### Results
 1. Create a Result:
 
 ```
-near call btc-app-vote.duongnh.testnet create_result '{"month": 6, "user_id": 0}' --deposit 0.1 --accountId duongnh.testnet
+near call btc-app-vote.duongnh.testnet create_result '{"poll_option_id": 0}' --deposit 0.1 --accountId duongnh.testnet
 ```
 
 2. View list of Results (with pagination) of the Contract: (`from_index`: integer, `limit`: integer)
@@ -91,4 +144,14 @@ near view btc-app-vote.duongnh.testnet get_all_results '{"from_index": 0, "limit
 3. View 1 Result by result_id
 ```
 near view btc-app-vote.duongnh.testnet get_result_by_id '{"result_id": 0}'
+```
+
+4. Update Result information
+```
+near call btc-app-vote.duongnh.testnet update_result '{"result_id": 0, "poll_option_id": 0}' --accountId duongnh.testnet
+```
+
+5. Delete a Result
+```
+near call btc-app-vote.duongnh.testnet delete_result '{"result_id": 0}' --accountId duongnh.testnet
 ```

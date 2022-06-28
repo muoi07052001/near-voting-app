@@ -10,15 +10,20 @@ impl AppVoteContract {
      * - Refund redundant deposited NEAR back to user
      */
     #[payable]
-    pub fn create_result(&mut self, month: u32, user_id: UserId) -> Result {
+    pub fn create_result(&mut self, poll_option_id: PollOptionId) -> Result {
         let before_storage_usage = env::storage_usage(); // Used to calculate the amount of redundant NEAR when users deposit
 
         let result_id = self.results_by_id_counter;
 
+        // Check if the poll_option_id exists or not
+        assert!(
+            self.poll_options_by_id.get(&poll_option_id).is_some(),
+            "Poll Option does not exist"
+        );
+
         // Create new Result
         let new_result = Result {
-            month,
-            user_id,
+            poll_option_id,
             total_vote: 0,
             created_at: Some(env::block_timestamp()),
             updated_at: None,
@@ -51,6 +56,35 @@ impl AppVoteContract {
 
     // Get 1 Result by id
     pub fn get_result_by_id(&self, result_id: ResultId) -> Result {
-        self.results_by_id.get(&result_id).expect("Result does not exist")
+        self.results_by_id
+            .get(&result_id)
+            .expect("Result does not exist")
+    }
+
+    // Update Criteria information (When a user vote)
+    pub fn update_result(&mut self, result_id: ResultId, poll_option_id: PollOptionId) -> Result {
+        let result = self
+            .results_by_id
+            .get(&result_id)
+            .expect("This result does not exist");
+
+        let updated_result = Result {
+            poll_option_id,
+            total_vote: result.total_vote + 1, // Increase the number of votes by one
+            created_at: result.created_at,
+            updated_at: Some(env::block_timestamp()),
+        };
+
+        // Update results_by_id
+        self.results_by_id.insert(&result_id, &updated_result);
+
+        updated_result
+    }
+
+    // Delete Result from the Smart Contract
+    pub fn delete_result(&mut self, result_id: PollOptionId) {
+        self.results_by_id
+            .remove(&result_id)
+            .expect("This result does not exists");
     }
 }
