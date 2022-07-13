@@ -89,17 +89,22 @@ impl AppVoteContract {
 
     // Voting
     // Update Result information (When a user vote)
-    pub fn update_result(&mut self, result_id: ResultId) -> Result {
-        let result = self
-            .results_by_id
-            .get(&result_id)
-            .expect("This result does not exist");
-
-        // Check current time is between poll.start_time and poll.end_time or not
+    pub fn vote(&mut self, criteria_id: CriteriaId, poll_id: PollId, user_id: UserId) {
+        // Check Criteria, Poll, User exists or not
+        assert!(
+            self.criterias_by_id.get(&criteria_id).is_some(),
+            "Criteria does not exist"
+        );
         let poll = self
             .polls_by_id
-            .get(&result.poll_id)
+            .get(&poll_id)
             .expect("Related poll does not exist");
+        assert!(
+            self.users_by_id.get(&user_id).is_some(),
+            "User does not exist"
+        );
+
+        // Check current time is between poll.start_time and poll.end_time or not
         let vote_timestamp = env::block_timestamp(); // Voting timestamp
 
         let base: u64 = 10;
@@ -136,21 +141,90 @@ impl AppVoteContract {
             }
         }
         // -------------------------------------------------------------------------
+        // Get result_id
+        let mut match_result_id = 0; // Default value
+        let mut match_result = Result {
+            // Default value
+            id: 0,
+            criteria_id: 0,
+            poll_id: 0,
+            user_id: 0,
+            total_vote: 0,
+            created_at: None,
+            updated_at: None,
+        };
+
+        for (result_id, result) in self.results_by_id.iter() {
+            if result.criteria_id == criteria_id
+                && result.poll_id == poll_id
+                && result.user_id == user_id
+            {
+                match_result_id = result_id;
+                match_result = result;
+                break;
+            }
+        }
+
+        assert!(match_result_id != 0, "Not found result"); // If match_result_id == 0 -> No appropriate result
 
         let updated_result = Result {
-            id: result.id,
-            criteria_id: result.criteria_id,
-            poll_id: result.poll_id,
-            user_id: result.user_id,
-            total_vote: result.total_vote + 1, // Increase the number of votes by one
-            created_at: result.created_at,
+            id: match_result.id,
+            criteria_id,
+            poll_id,
+            user_id,
+            total_vote: match_result.total_vote + 1, // Increase the number of votes by one
+            created_at: match_result.created_at,
             updated_at: Some(env::block_timestamp()),
         };
 
         // Update results_by_id
-        self.results_by_id.insert(&result_id, &updated_result);
+        self.results_by_id.insert(&match_result_id, &updated_result);
+    }
 
-        updated_result
+    pub fn get_all_results_by_poll_id(&self, poll_id: PollId) -> Vec<ResultByPoll> {
+        // Check Poll exists or not
+        assert!(
+            self.polls_by_id.get(&poll_id).is_some(),
+            "Poll does not exist"
+        );
+
+        // Get the Array of Result of this Poll
+        let mut result_by_poll_id_set: Vec<Result> = vec![];
+        let mut return_set: Vec<ResultByPoll> = vec![];
+        for result in self.results_by_id.values() {
+            if result.poll_id == poll_id {
+                result_by_poll_id_set.push(result);
+            }
+        }
+
+        let poll = self
+            .polls_by_id
+            .get(&poll_id)
+            .expect("Poll does not exists");
+        let poll_option = self
+            .poll_options_by_id
+            .get(&poll.poll_option_id)
+            .expect("Poll Option does not exists");
+        for user_id in poll_option.user_ids {
+            let mut vote_count = 0;
+            for result in result_by_poll_id_set.clone() {
+                if result.user_id == user_id {
+                    vote_count += result.total_vote;
+                }
+            }
+            let new_result: ResultByPoll = ResultByPoll {
+                poll_id: poll_id,
+                user_id: user_id,
+                total_vote: vote_count,
+            };
+
+            return_set.push(new_result);
+        }
+
+        // Sort ranking desc
+        return_set.sort_by(|a, b| b.total_vote.cmp(&a.total_vote));
+
+        return_set
     }
 
     // Delete Result from the Smart Contract
